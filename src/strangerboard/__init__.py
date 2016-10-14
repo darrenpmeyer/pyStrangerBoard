@@ -4,7 +4,7 @@ if sys.hexversion < 0x03050000:
     raise EnvironmentError("Python >= 3.5 required by {}".format(__name__))
 
 import serial
-import io
+# import io
 import time
 
 
@@ -15,11 +15,11 @@ class StrangerBoard(object):
     Port is required, other items are pySerial control arguments, it's _strongly recommended_ that you
     only set 'baud=' parameter and leave others alone.
 
-    :param: port (str) the name of a serial device to connect to. Default is /dev/ttyUSB0
-    :param: baud (int) the baud rate. Default is 9600
-    :param: parity (char) the parity of N, E, or O. default is N for None
-    :param: stop (int) the number of stop bits. defalutl is 1
-    :param: timeout (int) seconds to wait before timing out a read. Default is 85!
+    :param port: (str) the name of a serial device to connect to. Default is /dev/ttyUSB0
+    :param baud: (int) the baud rate. Default is 9600
+    :param parity: (char) the parity of N, E, or O. default is N for None
+    :param stop: (int) the number of stop bits. defalutl is 1
+    :param timeout: (int) seconds to wait before timing out a read. Default is 85!
     """
 
     def __init__(self, port=None, **kwargs):
@@ -45,7 +45,7 @@ class StrangerBoard(object):
         if 'stop' not in self._settings:
             self._settings['stop'] = 1
         if 'timeout' not in self._settings:
-            self._settings['timeout'] = 85
+            self._settings['timeout'] = 5
 
         parity = serial.PARITY_NONE
         if self._settings['parity'].upper() == 'E':
@@ -80,10 +80,12 @@ class StrangerBoard(object):
         self._connection.write(ascii_message)
         self._connection.write(b"\n")
 
-    def _read(self):
+    def _read(self, timeout=85):
         """
         Performs an immediate readline from the serial port. Should not be used by consumers
 
+
+        :param timeout: (int) seconds to wait for a newline to arrive. Default is 85
         :return: line read as bytes
         """
         if self._connection is None:
@@ -92,17 +94,25 @@ class StrangerBoard(object):
         if not self._connection.is_open:
             self._connection.open()
 
-        sio = io.TextIOWrapper(io.BufferedRWPair(self._connection, self._connection))
-        message = sio.readline()
+        # sio = io.TextIOWrapper(io.BufferedRWPair(self._connection, self._connection))
+        # message = sio.readline()
+        start = time.time()
+        message = ""
+        while not message.endswith("\n"):
+            message += self._connection.read().decode()
+            if time.time() - start > timeout:
+                raise TimeoutError("Waited too long for newline, only got '{}'".format(message))
+
         return message
 
-    def write(self, message):
+    def write(self, message, timeout=90):
         """
         Performs a write of a message, then waits for a "Queued message" response from StrangerBoard
 
         Uses the timeout value to determine how long to wait
 
         :param message:
+        :param timeout:
         :return: queued message string, exception on failure
         """
         self._write(message)
@@ -110,7 +120,7 @@ class StrangerBoard(object):
         response = self._read()
         while not response.startswith("Queued message '"):
             print("Still waiting, heard: {}".format(response), file=sys.stderr)
-            if time.time() - start > self._settings['timeout']:
+            if time.time() - start > timeout:
                 raise TimeoutError("Timeout waiting for Queued notification")
 
         return response
