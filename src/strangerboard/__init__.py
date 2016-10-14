@@ -122,5 +122,8 @@ class StrangerBoard(object):
             print("Still waiting, heard: {}".format(response), file=sys.stderr)
             if time.time() - start > timeout:
                 raise TimeoutError("Timeout waiting for Queued notification")
+            response = self._read()
+
+        print(response, file=sys.stderr)
 
         return response
