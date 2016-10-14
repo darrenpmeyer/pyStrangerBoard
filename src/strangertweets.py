@@ -43,7 +43,7 @@ try:
 
     while True:
         if ts.cycle(splain=True):
-            time.sleep(3)
+            time.sleep(60)
         else:
             print("No results, trying again in 10s")
             time.sleep(10)
