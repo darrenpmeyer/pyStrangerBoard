@@ -1,7 +1,7 @@
 import sys
 
-if sys.hexversion < 0x03050000:
-    raise EnvironmentError("Python >= 3.5 required by {}".format(__name__))
+if sys.hexversion < 0x03010000:
+    raise EnvironmentError("Python >= 3.1 required by {}".format(__name__))
 
 import serial
 # import io
