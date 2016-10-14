@@ -1,0 +1,4 @@
+src/strangertweets.ini
+__pycache__
+*.pyc
+.idea/
