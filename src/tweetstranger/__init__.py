@@ -20,7 +20,7 @@ class TweetStranger(object):
             self.searches += 1
             for tweet in results:
                 text = re.sub('#\w+', '', tweet['text'])
-                text = re.sub("\w+",' ', text)  # replace any whitespace with a single space
+                text = re.sub("\s+",' ', text)  # replace any whitespace with a single space
                 text = re.sub('[^A-Za-z ]', '', text)
                 self.queue.append(text)
                 if splain:
