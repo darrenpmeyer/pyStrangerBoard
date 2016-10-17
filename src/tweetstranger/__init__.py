@@ -19,6 +19,8 @@ class TweetStranger(object):
         if type(results) is list:
             self.searches += 1
             for tweet in results:
+                if re.search('http(s?)://', tweet['text']):
+                    continue   # skip tweets with links or media
                 text = re.sub('#\w+', '', tweet['text'])
                 text = re.sub("\s+",' ', text)  # replace any whitespace with a single space
                 text = re.sub('[^A-Za-z ]', '', text)
